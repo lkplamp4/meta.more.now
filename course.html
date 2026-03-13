@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACCESS REQUIRED — META.MORE.NOW</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mint: #00ffcc;
+    --neon-blue: #00e5ff;
+    --deep: #030f10;
+    --glow-mint: 0 0 8px #00ffcc, 0 0 20px #00ffcc88;
+    --glow-blue: 0 0 8px #00e5ff, 0 0 24px #00e5ff88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--mint);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,255,204,0.015) 2px, rgba(0,255,204,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.8) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,204,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,204,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 20px;
+  }
+
+  .lock-icon {
+    font-size: 64px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { text-shadow: var(--glow-mint); }
+    50% { text-shadow: 0 0 30px #00ffcc, 0 0 60px #00ffcc88; }
+  }
+
+  .login-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(36px, 8vw, 72px);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    letter-spacing: 4px;
+    text-align: center;
+    animation: flicker 6s ease-in-out infinite;
+  }
+  @keyframes flicker {
+    0%,96%,100%{opacity:1} 97%{opacity:0.5} 99%{opacity:0.8}
+  }
+
+  .login-sub {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: rgba(0,229,255,0.6);
+    letter-spacing: 5px;
+    text-align: center;
+  }
+
+  .input-wrap {
+    position: relative;
+    width: 320px;
+  }
+
+  .input-wrap::before, .input-wrap::after {
+    content: '';
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: var(--mint);
+    border-style: solid;
+  }
+  .input-wrap::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .input-wrap::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  #password-input {
+    width: 100%;
+    background: rgba(0,255,204,0.05);
+    border: 1px solid rgba(0,255,204,0.3);
+    color: var(--mint);
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    letter-spacing: 8px;
+    padding: 16px 20px;
+    text-align: center;
+    outline: none;
+    caret-color: var(--mint);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  #password-input:focus {
+    border-color: var(--mint);
+    box-shadow: var(--glow-mint);
+  }
+
+  #password-input::placeholder {
+    color: rgba(0,255,204,0.2);
+    letter-spacing: 4px;
+    font-size: 20px;
+  }
+
+  .enter-btn {
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    letter-spacing: 6px;
+    padding: 16px 56px;
+    background: transparent;
+    border: 2px solid var(--mint);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    box-shadow: var(--glow-mint);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    width: 320px;
+  }
+
+  .enter-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--mint);
+    transform: translateX(-101%);
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+  .enter-btn:hover { color: var(--deep); text-shadow: none; }
+  .enter-btn:hover::before { transform: translateX(0); }
+  .enter-btn span { position: relative; z-index: 1; }
+
+  #error-msg {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: #ff4466;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px #ff4466;
+    display: none;
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-8px)}
+    75%{transform:translateX(8px)}
+  }
+
+  .hint {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: rgba(0,255,204,0.2);
+    letter-spacing: 3px;
+    text-align: center;
+  }
+
+  /* ── COURSE CONTENT ── */
+  #course-content {
+    display: none;
+    position: relative;
+    z-index: 10;
+    max-width: 860px;
+    width: 100%;
+    padding: 60px 30px;
+    animation: fadeIn 1s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .course-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .access-badge {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 5px;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    border: 1px solid rgba(0,229,255,0.3);
+    padding: 6px 20px;
+    display: inline-block;
+    margin-bottom: 24px;
+    background: rgba(0,229,255,0.05);
+  }
+
+  .course-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(48px, 10vw, 96px);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    line-height: 0.95;
+    margin-bottom: 12px;
+  }
+
+  .course-sub {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: rgba(0,229,255,0.7);
+    letter-spacing: 5px;
+  }
+
+  /* Modules */
+  .modules { display: flex; flex-direction: column; gap: 16px; }
+
+  .module {
+    border: 1px solid rgba(0,255,204,0.15);
+    background: rgba(0,255,204,0.03);
+    padding: 24px 28px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .module:hover {
+    background: rgba(0,255,204,0.07);
+    border-color: rgba(0,255,204,0.4);
+  }
+
+  .module::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 8px; height: 8px;
+    border-top: 2px solid var(--mint);
+    border-left: 2px solid var(--mint);
+  }
+
+  .module-num {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--neon-blue);
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+
+  .module-title {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    letter-spacing: 2px;
+  }
+
+  .module-desc {
+    font-size: 12px;
+    color: rgba(0,255,204,0.5);
+    margin-top: 8px;
+    line-height: 1.8;
+  }
+
+  .logout-btn {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: rgba(0,255,204,0.3);
+    background: none;
+    border: 1px solid rgba(0,255,204,0.15);
+    padding: 8px 24px;
+    cursor: pointer;
+    margin-top: 40px;
+    display: block;
+    margin-left: auto;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .logout-btn:hover { color: var(--mint); border-color: var(--mint); }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+  <div class="lock-icon">◈</div>
+  <h1 class="login-title">ACCESS<br>RESTRICTED</h1>
+  <p class="login-sub">ENTER YOUR ACCESS CODE</p>
+
+  <div class="input-wrap">
+    <input
+      type="password"
+      id="password-input"
+      placeholder="_ _ _ _ _ _ _ _"
+      maxlength="20"
+      onkeydown="if(event.key==='Enter') checkPassword()"
+      autocomplete="off"
+    />
+  </div>
+
+  <button class="enter-btn" onclick="checkPassword()"><span>UNLOCK ACCESS</span></button>
+
+  <p id="error-msg">✗ &nbsp; INVALID CODE — TRY AGAIN</p>
+  <p class="hint">// password sent via email after purchase //</p>
+</div>
+
+<!-- ── COURSE CONTENT (hidden until unlocked) ── -->
+<div id="course-content">
+  <div class="course-header">
+    <div class="access-badge">◈ &nbsp; ACCESS GRANTED &nbsp; ◈</div>
+    <h1 class="course-title">META.<br>MORE.<br>NOW.</h1>
+    <p class="course-sub">YOUR TRANSFORMATION BEGINS</p>
+  </div>
+
+  <div class="modules">
+    <div class="module">
+      <p class="module-num">MODULE 01 //</p>
+      <p class="module-title">WHO ARE YOU REALLY?</p>
+      <p class="module-desc">Strip away the noise. Identify the stories you've been telling yourself and rewrite them from scratch.</p>
+    </div>
+    <div class="module">
+      <p class="module-num">MODULE 02 //</p>
+      <p class="module-title">THE COMFORT TRAP</p>
+      <p class="module-desc">Why your brain is wired against growth — and the exact system to override it daily.</p>
+    </div>
+    <div class="module">
+      <p class="module-num">MODULE 03 //</p>
+      <p class="module-title">DESIGN YOUR SIGNAL</p>
+      <p class="module-desc">Build a life blueprint that actually reflects who you want to become — not who you were.</p>
+    </div>
+    <div class="module">
+      <p class="module-num">MODULE 04 //</p>
+      <p class="module-title">EXECUTE WITHOUT FEAR</p>
+      <p class="module-desc">The action framework that turns paralysis into momentum. No more waiting for "the right time."</p>
+    </div>
+    <div class="module">
+      <p class="module-num">MODULE 05 //</p>
+      <p class="module-title">THE AWAKENED LIFE</p>
+      <p class="module-desc">Integrate everything. Your new identity, your new habits, your new reality — locked in for good.</p>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">◈ SIGN OUT</button>
+</div>
+
+<script>
+  // ⬇️ CHANGE THIS TO YOUR SECRET PASSWORD
+  const SECRET_PASSWORD = "awaken2026";
+
+  function checkPassword() {
+    const input = document.getElementById('password-input').value;
+    const errorMsg = document.getElementById('error-msg');
+
+    if (input === SECRET_PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('course-content').style.display = 'block';
+      sessionStorage.setItem('unlocked', 'true');
+    } else {
+      errorMsg.style.display = 'block';
+      errorMsg.style.animation = 'none';
+      setTimeout(() => errorMsg.style.animation = 'shake 0.4s ease', 10);
+      document.getElementById('password-input').value = '';
+      document.getElementById('password-input').focus();
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('unlocked');
+    document.getElementById('course-content').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+
+  // Stay unlocked if already authenticated this session
+  if (sessionStorage.getItem('unlocked') === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('course-content').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
