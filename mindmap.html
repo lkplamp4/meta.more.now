@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>META.MORE.NOW — Mind Map</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --mint:#00ffcc;--blue:#00e5ff;--deep:#030f10;
+    --gm:0 0 8px #00ffcc88,0 0 20px #00ffcc44;
+    --gb:0 0 8px #00e5ff88;
+  }
+  body{
+    background:var(--deep);
+    overflow:hidden;
+    height:100vh;
+    width:100vw;
+    font-family:'Space Mono',monospace;
+    cursor:grab;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,204,0.012) 3px,rgba(0,255,204,0.012) 4px);
+    pointer-events:none;z-index:50;
+  }
+  body::after{
+    content:'';position:fixed;inset:0;
+    background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.6) 100%);
+    pointer-events:none;z-index:49;
+  }
+  .grid-bg{
+    position:fixed;inset:0;
+    background-image:linear-gradient(rgba(0,255,204,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,204,0.03) 1px,transparent 1px);
+    background-size:48px 48px;z-index:0;
+  }
+  canvas{position:fixed;inset:0;z-index:10;cursor:grab;}
+  canvas.grabbing{cursor:grabbing;}
+  canvas.pointer{cursor:pointer;}
+
+  /* Password Gate */
+  #gate{
+    position:fixed;inset:0;z-index:999;
+    background:var(--deep);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    gap:22px;padding:20px;
+  }
+  #gate::before{
+    content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,204,0.012) 3px,rgba(0,255,204,0.012) 4px);
+    pointer-events:none;
+  }
+  #gate::after{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.75) 100%);
+    pointer-events:none;
+  }
+  .gate-symbol{
+    font-family:'VT323',monospace;font-size:72px;
+    color:var(--mint);text-shadow:var(--gm);
+    animation:gsp 2s ease-in-out infinite;
+    position:relative;z-index:1;line-height:1;
+  }
+  @keyframes gsp{0%,100%{text-shadow:var(--gm);}50%{text-shadow:0 0 20px #00ffcc,0 0 50px #00ffcc88;}}
+  .gate-title{
+    font-family:'VT323',monospace;font-size:clamp(36px,8vw,64px);
+    color:var(--mint);text-shadow:var(--gm);letter-spacing:4px;
+    text-align:center;position:relative;z-index:1;
+    animation:flk 7s ease-in-out infinite;
+  }
+  @keyframes flk{0%,95%,100%{opacity:1}96%{opacity:.5}98%{opacity:.8}}
+  .gate-sub{
+    font-family:'VT323',monospace;font-size:15px;
+    color:rgba(0,229,255,0.5);letter-spacing:5px;
+    text-align:center;position:relative;z-index:1;
+  }
+  .gate-input-wrap{position:relative;width:min(320px,88vw);z-index:1;}
+  .gate-input-wrap::before{
+    content:'';position:absolute;top:-1px;left:-1px;
+    width:10px;height:10px;
+    border-top:2px solid var(--mint);border-left:2px solid var(--mint);
+  }
+  .gate-input-wrap::after{
+    content:'';position:absolute;bottom:-1px;right:-1px;
+    width:10px;height:10px;
+    border-bottom:2px solid var(--mint);border-right:2px solid var(--mint);
+  }
+  #gate-input{
+    width:100%;background:rgba(0,255,204,0.04);
+    border:1px solid rgba(0,255,204,0.25);
+    color:var(--mint);font-family:'VT323',monospace;
+    font-size:32px;letter-spacing:10px;padding:16px 20px;
+    text-align:center;outline:none;caret-color:var(--mint);
+    transition:border-color .3s,box-shadow .3s;
+  }
+  #gate-input:focus{border-color:var(--mint);box-shadow:var(--gm);}
+  #gate-input::placeholder{color:rgba(0,255,204,0.15);font-size:20px;letter-spacing:4px;}
+  .gate-btn{
+    font-family:'VT323',monospace;font-size:20px;letter-spacing:6px;
+    padding:14px 48px;background:transparent;
+    border:2px solid var(--mint);color:var(--mint);
+    text-shadow:var(--gm);box-shadow:var(--gm);
+    cursor:pointer;width:min(320px,88vw);
+    position:relative;overflow:hidden;transition:all .2s;z-index:1;
+  }
+  .gate-btn::before{
+    content:'';position:absolute;inset:0;background:var(--mint);
+    transform:translateX(-101%);transition:transform .3s;z-index:0;
+  }
+  .gate-btn:hover{color:var(--deep);text-shadow:none;}
+  .gate-btn:hover::before{transform:translateX(0);}
+  .gate-btn span{position:relative;z-index:1;}
+  .gate-err{
+    font-family:'VT323',monospace;font-size:15px;
+    color:#ff4466;text-shadow:0 0 10px #ff4466;
+    letter-spacing:3px;display:none;
+    animation:shk .4s ease;position:relative;z-index:1;
+  }
+  @keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .gate-hint{
+    font-family:'VT323',monospace;font-size:12px;
+    color:rgba(0,255,204,0.18);letter-spacing:3px;
+    text-align:center;position:relative;z-index:1;
+  }
+
+  /* Header */
+  .header{
+    position:fixed;top:0;left:0;right:0;
+    padding:14px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(3,15,16,0.85);
+    border-bottom:1px solid rgba(0,255,204,0.1);
+    z-index:100;
+    backdrop-filter:blur(12px);
+  }
+  .logo{
+    font-family:'VT323',monospace;font-size:24px;
+    color:var(--mint);text-shadow:var(--gm);letter-spacing:4px;
+  }
+  .logo span{color:var(--blue);}
+  .header-nav{display:flex;gap:12px;}
+  .nav-link{
+    font-family:'VT323',monospace;font-size:15px;letter-spacing:3px;
+    color:rgba(0,255,204,0.4);text-decoration:none;
+    padding:6px 14px;border:1px solid rgba(0,255,204,0.15);
+    transition:all .2s;
+  }
+  .nav-link:hover{color:var(--mint);border-color:rgba(0,255,204,0.4);text-shadow:var(--gm);}
+
+  /* Tooltip */
+  #tooltip{
+    position:fixed;display:none;
+    background:rgba(4,18,20,0.97);
+    border:1px solid rgba(0,255,204,0.25);
+    padding:14px 18px;pointer-events:none;
+    max-width:220px;z-index:200;
+    transition:opacity .15s;
+  }
+  #tooltip::before{
+    content:'';position:absolute;top:-1px;left:-1px;
+    width:8px;height:8px;
+    border-top:2px solid var(--mint);border-left:2px solid var(--mint);
+  }
+  #tooltip::after{
+    content:'';position:absolute;bottom:-1px;right:-1px;
+    width:8px;height:8px;
+    border-bottom:2px solid var(--mint);border-right:2px solid var(--mint);
+  }
+  #tt-label{
+    font-family:'VT323',monospace;font-size:11px;letter-spacing:4px;
+    color:rgba(0,229,255,0.5);margin-bottom:4px;
+  }
+  #tt-title{
+    font-family:'VT323',monospace;font-size:18px;
+    color:var(--mint);text-shadow:var(--gm);
+    letter-spacing:1px;margin-bottom:6px;
+  }
+  #tt-desc{
+    font-family:'Space Mono',monospace;font-size:10px;
+    color:rgba(0,255,204,0.5);line-height:1.7;margin-bottom:10px;
+  }
+  #tt-link{
+    font-family:'VT323',monospace;font-size:13px;
+    letter-spacing:3px;color:var(--blue);
+    text-shadow:var(--gb);
+  }
+
+  /* Instructions */
+  .hint{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    font-family:'VT323',monospace;font-size:13px;
+    color:rgba(0,255,204,0.2);letter-spacing:3px;
+    z-index:100;pointer-events:none;white-space:nowrap;
+  }
+
+  /* Corner */
+  .corner{
+    position:fixed;font-family:'VT323',monospace;
+    font-size:11px;color:rgba(0,255,204,0.15);letter-spacing:2px;z-index:100;
+  }
+  .corner.tl{top:56px;left:20px;}
+  .corner.tr{top:56px;right:20px;}
+
+  /* Zoom controls */
+  .zoom-ctrl{
+    position:fixed;bottom:20px;right:20px;
+    display:flex;flex-direction:column;gap:4px;z-index:100;
+  }
+  .zoom-btn{
+    font-family:'VT323',monospace;font-size:20px;
+    width:36px;height:36px;
+    background:rgba(6,26,28,0.9);
+    border:1px solid rgba(0,255,204,0.2);
+    color:var(--mint);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .2s;
+  }
+  .zoom-btn:hover{border-color:var(--mint);text-shadow:var(--gm);}
+
+  /* Legend */
+  .legend{
+    position:fixed;bottom:20px;left:20px;z-index:100;
+    background:rgba(4,18,20,0.85);
+    border:1px solid rgba(0,255,204,0.1);
+    padding:12px 16px;backdrop-filter:blur(8px);
+  }
+  .legend-title{
+    font-family:'VT323',monospace;font-size:12px;
+    letter-spacing:3px;color:rgba(0,255,204,0.3);margin-bottom:8px;
+  }
+  .legend-item{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .legend-dot{width:10px;height:10px;border-radius:50%;}
+  .legend-label{font-family:'VT323',monospace;font-size:12px;letter-spacing:2px;color:rgba(0,255,204,0.4);}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- Password Gate -->
+<div id="gate">
+  <div class="gate-symbol">◈</div>
+  <h1 class="gate-title">MAP ACCESS<br>RESTRICTED</h1>
+  <p class="gate-sub">ENTER YOUR ACCESS CODE</p>
+  <div class="gate-input-wrap">
+    <input type="password" id="gate-input" placeholder="· · · · · · · ·"
+      onkeydown="if(event.key==='Enter')checkGate()" autocomplete="off"/>
+  </div>
+  <button class="gate-btn" onclick="checkGate()"><span>UNLOCK THE MAP</span></button>
+  <p class="gate-err" id="gate-err">✗ &nbsp; INVALID CODE — TRY AGAIN</p>
+  <p class="gate-hint">// same code as your course access //</p>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">META.<span>MORE</span>.NOW</div>
+  <nav class="header-nav">
+    <a href="index.html" class="nav-link">HOME</a>
+    <a href="course.html" class="nav-link">COURSE</a>
+    <a href="checkout.html" class="nav-link">JOIN</a>
+  </nav>
+</header>
+
+<div class="corner tl">MAP::ACTIVE</div>
+<div class="corner tr">NODES: 12</div>
+
+<canvas id="canvas"></canvas>
+
+<!-- Tooltip -->
+<div id="tooltip">
+  <div id="tt-label">NODE //</div>
+  <div id="tt-title"></div>
+  <div id="tt-desc"></div>
+  <div id="tt-link">◈ CLICK TO OPEN →</div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-title">// LEGEND</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00ffcc;box-shadow:0 0 6px #00ffcc88;"></div><div class="legend-label">CORE</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;"></div><div class="legend-label">WEALTH</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5dcaa5;"></div><div class="legend-label">SELF</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1d9e75;"></div><div class="legend-label">ACTION</div></div>
+</div>
+
+<!-- Zoom -->
+<div class="zoom-ctrl">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <button class="zoom-btn" onclick="zoomOut()">−</button>
+  <button class="zoom-btn" onclick="resetView()" style="font-size:13px;">⌂</button>
+</div>
+
+<div class="hint">◈ DRAG NODES &nbsp;·&nbsp; SCROLL TO ZOOM &nbsp;·&nbsp; CLICK TO NAVIGATE ◈</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  PASSWORD — change this to your secret code
+// ═══════════════════════════════════════════
+const MAP_PASSWORD = "awaken2026";
+
+function checkGate() {
+  const val = document.getElementById('gate-input').value;
+  const err = document.getElementById('gate-err');
+  if (val === MAP_PASSWORD) {
+    const gate = document.getElementById('gate');
+    gate.style.transition = 'opacity 0.6s ease';
+    gate.style.opacity = '0';
+    setTimeout(() => { gate.style.display = 'none'; }, 600);
+    sessionStorage.setItem('map-unlocked','true');
+  } else {
+    err.style.display = 'block';
+    err.style.animation = 'none';
+    setTimeout(() => err.style.animation = 'shk .4s ease', 10);
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+  }
+}
+
+if (sessionStorage.getItem('map-unlocked') === 'true') {
+  document.getElementById('gate').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════
+//  NODES — edit label, desc, link, color here
+// ═══════════════════════════════════════════
+const nodes = [
+  {
+    id:0, label:'HIGHER\nSELF', group:'core',
+    desc:'The unlimited you. Every module flows from here.',
+    link:'course.html',
+    r:44, color:'#00ffcc', tc:'#030f10'
+  },
+  {
+    id:1, label:'WEALTH\nMINDSET', group:'money',
+    desc:'Rewire your beliefs about money and abundance.',
+    link:'course.html#module-1',
+    r:30, color:'#00e5ff', tc:'#030f10'
+  },
+  {
+    id:2, label:'BUSINESS\nVISION', group:'money',
+    desc:'Build a business aligned with your highest self.',
+    link:'course.html#module-2',
+    r:30, color:'#00e5ff', tc:'#030f10'
+  },
+  {
+    id:3, label:'IDENTITY\nRESET', group:'self',
+    desc:'Dissolve old stories. Step into who you truly are.',
+    link:'course.html#module-3',
+    r:26, color:'#5dcaa5', tc:'#04342c'
+  },
+  {
+    id:4, label:'INNER\nCLARITY', group:'self',
+    desc:'Silence the noise. Let your higher self lead.',
+    link:'course.html#module-4',
+    r:26, color:'#5dcaa5', tc:'#04342c'
+  },
+  {
+    id:5, label:'DAILY\nACTION', group:'action',
+    desc:'Small aligned moves compound into massive results.',
+    link:'course.html#module-5',
+    r:22, color:'#1d9e75', tc:'#e1f5ee'
+  },
+  {
+    id:6, label:'FEAR\nOVERRIDE', group:'action',
+    desc:'Act from vision, not anxiety. Break the comfort trap.',
+    link:'course.html',
+    r:22, color:'#1d9e75', tc:'#e1f5ee'
+  },
+  {
+    id:7, label:'SIGNAL\nDESIGN', group:'energy',
+    desc:'Your outer reality always matches your inner frequency.',
+    link:'course.html',
+    r:22, color:'#00b09b', tc:'#e1f5ee'
+  },
+  {
+    id:8, label:'ALIGNED\nSUCCESS', group:'energy',
+    desc:'Success that flows from who you truly are.',
+    link:'checkout.html',
+    r:22, color:'#00b09b', tc:'#e1f5ee'
+  },
+  {
+    id:9, label:'FLOW\nSTATE', group:'action',
+    desc:'When identity and action align, growth becomes effortless.',
+    link:'course.html',
+    r:20, color:'#0f6e56', tc:'#9fe1cb'
+  },
+  {
+    id:10, label:'MONEY\nBLOCKS', group:'money',
+    desc:'Unconscious limits keeping wealth away — dissolved here.',
+    link:'course.html',
+    r:20, color:'#0f6e56', tc:'#9fe1cb'
+  },
+  {
+    id:11, label:'PURPOSE\n& POWER', group:'self',
+    desc:'Your unique gifts are your greatest business asset.',
+    link:'course.html',
+    r:20, color:'#0f6e56', tc:'#9fe1cb'
+  },
+];
+
+// ═══════════════════════════════════════════
+//  CONNECTIONS between nodes
+// ═══════════════════════════════════════════
+const links = [
+  {s:0,t:1},{s:0,t:2},{s:0,t:3},{s:0,t:4},{s:0,t:7},
+  {s:1,t:10},{s:1,t:8},{s:2,t:5},{s:2,t:8},
+  {s:3,t:4},{s:3,t:11},{s:4,t:6},{s:4,t:9},
+  {s:5,t:6},{s:5,t:9},{s:7,t:8},{s:7,t:11},
+  {s:6,t:9},{s:10,t:1},{s:11,t:2},
+];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, dpr = window.devicePixelRatio || 1;
+let scale = 1, offsetX = 0, offsetY = 0;
+let dragging = null, dragOffX = 0, dragOffY = 0;
+let hoveredNode = null;
+let isPanning = false, panSX = 0, panSY = 0, panOX = 0, panOY = 0;
+let clickStart = {x:0,y:0,t:0};
+let pulseT = 0;
+
+function resize() {
+  const rect = document.body.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  if (!nodes[0].x) initPos();
+}
+
+function initPos() {
+  nodes[0].x = W/2; nodes[0].y = H/2;
+  nodes[0].vx = 0; nodes[0].vy = 0;
+  const rings = [[1,2,3,4,7],[5,6,8,9,10,11]];
+  rings.forEach((ring, ri) => {
+    ring.forEach((id, i) => {
+      const a = (i/ring.length)*Math.PI*2 - Math.PI/2;
+      const r = 150 + ri*120;
+      nodes[id].x = W/2 + Math.cos(a)*r;
+      nodes[id].y = H/2 + Math.sin(a)*r;
+      nodes[id].vx = 0; nodes[id].vy = 0;
+    });
+  });
+}
+
+function simulate() {
+  const repel = 5000, spring = 0.015, damp = 0.82;
+  for (let i = 0; i < nodes.length; i++) {
+    if (dragging === i) continue;
+    let fx = 0, fy = 0;
+    for (let j = 0; j < nodes.length; j++) {
+      if (i === j) continue;
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const d = Math.sqrt(dx*dx+dy*dy) || 1;
+      fx += (dx/d) * repel/(d*d);
+      fy += (dy/d) * repel/(d*d);
+    }
+    for (const l of links) {
+      let o = -1;
+      if (l.s===i) o=l.t; else if (l.t===i) o=l.s;
+      if (o<0) continue;
+      const dx = nodes[o].x - nodes[i].x;
+      const dy = nodes[o].y - nodes[i].y;
+      const d = Math.sqrt(dx*dx+dy*dy) || 1;
+      const rest = (nodes[i].r + nodes[o].r) * 2.6;
+      fx += dx * spring * (d - rest) / d;
+      fy += dy * spring * (d - rest) / d;
+    }
+    if (i===0) {
+      fx += (W/2 - nodes[0].x) * 0.008;
+      fy += (H/2 - nodes[0].y) * 0.008;
+    }
+    nodes[i].vx = (nodes[i].vx + fx) * damp;
+    nodes[i].vy = (nodes[i].vy + fy) * damp;
+    nodes[i].x += nodes[i].vx;
+    nodes[i].y += nodes[i].vy;
+  }
+}
+
+function worldToScreen(x, y) {
+  return { x: x * scale + offsetX, y: y * scale + offsetY };
+}
+function screenToWorld(x, y) {
+  return { x: (x - offsetX) / scale, y: (y - offsetY) / scale };
+}
+
+function draw() {
+  pulseT += 0.04;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scale, scale);
+
+  // Draw links
+  for (const l of links) {
+    const a = nodes[l.s], b = nodes[l.t];
+    const hov = hoveredNode===l.s || hoveredNode===l.t;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = hov ? 'rgba(0,255,204,0.4)' : 'rgba(0,255,204,0.08)';
+    ctx.lineWidth = hov ? 1.5 : 0.8;
+    ctx.stroke();
+
+    // Animated dot on hovered links
+    if (hov) {
+      const t = (Math.sin(pulseT) * 0.5 + 0.5);
+      const px = a.x + (b.x - a.x) * t;
+      const py = a.y + (b.y - a.y) * t;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5, 0, Math.PI*2);
+      ctx.fillStyle = '#00ffcc';
+      ctx.fill();
+    }
+  }
+
+  // Draw nodes
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    const hov = hoveredNode === i;
+    const isCenter = i === 0;
+    const pulse = isCenter ? Math.sin(pulseT) * 3 : 0;
+
+    ctx.save();
+
+    // Outer glow ring for center
+    if (isCenter) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r + 10 + pulse, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(0,255,204,0.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r + 18 + pulse*1.5, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(0,255,204,0.05)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Hover ring
+    if (hov) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r + 8, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(0,255,204,0.25)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r + (hov ? 2 : 0), 0, Math.PI*2);
+    ctx.fillStyle = n.color;
+    ctx.fill();
+
+    // Border
+    if (hov || isCenter) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Label
+    const fs = isCenter ? 12 : (n.r > 24 ? 10 : 9);
+    ctx.font = `bold ${fs}px "Space Mono", monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = n.tc;
+    const lines = n.label.split('\n');
+    const lh = fs + 2;
+    lines.forEach((line, li) => {
+      ctx.fillText(line, n.x, n.y + (li - (lines.length-1)/2) * lh);
+    });
+
+    // Link indicator on hover
+    if (hov && n.link) {
+      ctx.font = `bold 8px monospace`;
+      ctx.fillStyle = 'rgba(3,15,16,0.7)';
+      ctx.fillText('→', n.x, n.y + n.r - 6);
+    }
+
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function hitTest(cx, cy) {
+  const w = screenToWorld(cx, cy);
+  for (let i = nodes.length-1; i >= 0; i--) {
+    const n = nodes[i];
+    if (Math.hypot(n.x - w.x, n.y - w.y) < n.r + 6) return i;
+  }
+  return -1;
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', e => {
+  const cx = e.clientX, cy = e.clientY;
+  clickStart = {x:cx, y:cy, t:Date.now()};
+  const hit = hitTest(cx, cy);
+  if (hit >= 0) {
+    dragging = hit;
+    const w = screenToWorld(cx, cy);
+    dragOffX = nodes[hit].x - w.x;
+    dragOffY = nodes[hit].y - w.y;
+    canvas.classList.add('grabbing');
+  } else {
+    isPanning = true;
+    panSX = cx; panSY = cy;
+    panOX = offsetX; panOY = offsetY;
+    canvas.classList.add('grabbing');
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const cx = e.clientX, cy = e.clientY;
+  if (dragging !== null) {
+    const w = screenToWorld(cx, cy);
+    nodes[dragging].x = w.x + dragOffX;
+    nodes[dragging].y = w.y + dragOffY;
+    nodes[dragging].vx = 0; nodes[dragging].vy = 0;
+  } else if (isPanning) {
+    offsetX = panOX + (cx - panSX);
+    offsetY = panOY + (cy - panSY);
+  } else {
+    const hit = hitTest(cx, cy);
+    hoveredNode = hit >= 0 ? hit : null;
+    canvas.className = hit >= 0 ? 'pointer' : '';
+    if (hit >= 0) {
+      const n = nodes[hit];
+      const tip = document.getElementById('tooltip');
+      tip.style.display = 'block';
+      let tx = cx + 16, ty = cy - 10;
+      if (tx + 230 > W) tx = cx - 230;
+      if (ty + 120 > H) ty = cy - 120;
+      tip.style.left = tx + 'px';
+      tip.style.top = ty + 'px';
+      document.getElementById('tt-label').textContent = n.group.toUpperCase() + ' NODE //';
+      document.getElementById('tt-title').textContent = n.label.replace('\n',' ');
+      document.getElementById('tt-desc').textContent = n.desc;
+      document.getElementById('tt-link').style.display = n.link ? 'block' : 'none';
+    } else {
+      document.getElementById('tooltip').style.display = 'none';
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  const cx = e.clientX, cy = e.clientY;
+  const dt = Date.now() - clickStart.t;
+  const moved = Math.hypot(cx - clickStart.x, cy - clickStart.y);
+  // If it was a quick click with little movement, navigate
+  if (dt < 300 && moved < 8 && dragging !== null) {
+    const n = nodes[dragging];
+    if (n.link) {
+      window.location.href = n.link;
+    }
+  }
+  dragging = null;
+  isPanning = false;
+  canvas.className = '';
+});
+
+canvas.addEventListener('mouseleave', () => {
+  dragging = null;
+  isPanning = false;
+  hoveredNode = null;
+  document.getElementById('tooltip').style.display = 'none';
+  canvas.className = '';
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const cx = e.clientX, cy = e.clientY;
+  const delta = e.deltaY > 0 ? 0.88 : 1.14;
+  offsetX = cx - (cx - offsetX) * delta;
+  offsetY = cy - (cy - offsetY) * delta;
+  scale = Math.max(0.25, Math.min(4, scale * delta));
+}, { passive: false });
+
+// Touch events
+let lastTouch = null;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    const cx = t.clientX, cy = t.clientY;
+    clickStart = {x:cx, y:cy, t:Date.now()};
+    const hit = hitTest(cx, cy);
+    if (hit >= 0) {
+      dragging = hit;
+      const w = screenToWorld(cx, cy);
+      dragOffX = nodes[hit].x - w.x;
+      dragOffY = nodes[hit].y - w.y;
+    } else {
+      isPanning = true;
+      panSX = cx; panSY = cy;
+      panOX = offsetX; panOY = offsetY;
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    const cx = t.clientX, cy = t.clientY;
+    if (dragging !== null) {
+      const w = screenToWorld(cx, cy);
+      nodes[dragging].x = w.x + dragOffX;
+      nodes[dragging].y = w.y + dragOffY;
+      nodes[dragging].vx = 0; nodes[dragging].vy = 0;
+    } else if (isPanning) {
+      offsetX = panOX + (cx - panSX);
+      offsetY = panOY + (cy - panSY);
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  const cx = e.changedTouches[0].clientX;
+  const cy = e.changedTouches[0].clientY;
+  const dt = Date.now() - clickStart.t;
+  const moved = Math.hypot(cx - clickStart.x, cy - clickStart.y);
+  if (dt < 300 && moved < 12 && dragging !== null) {
+    const n = nodes[dragging];
+    if (n.link) window.location.href = n.link;
+  }
+  dragging = null;
+  isPanning = false;
+});
+
+// Zoom controls
+function zoomIn() {
+  const cx = W/2, cy = H/2;
+  const delta = 1.2;
+  offsetX = cx - (cx - offsetX)*delta;
+  offsetY = cy - (cy - offsetY)*delta;
+  scale = Math.min(4, scale * delta);
+}
+function zoomOut() {
+  const cx = W/2, cy = H/2;
+  const delta = 0.85;
+  offsetX = cx - (cx - offsetX)*delta;
+  offsetY = cy - (cy - offsetY)*delta;
+  scale = Math.max(0.25, scale * delta);
+}
+function resetView() {
+  scale = 1; offsetX = 0; offsetY = 0;
+}
+
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+function loop() {
+  simulate();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
