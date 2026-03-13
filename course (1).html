@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>META.MORE.NOW — Course Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mint: #00ffcc;
+    --neon-blue: #00e5ff;
+    --deep: #030f10;
+    --card: #061a1c;
+    --card2: #071e20;
+    --glow-mint: 0 0 8px #00ffcc, 0 0 20px #00ffcc66;
+    --glow-blue: 0 0 8px #00e5ff, 0 0 20px #00e5ff66;
+    --glow-text: 0 0 10px #00ffcc, 0 0 25px #00ffcc88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--mint);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    cursor: default;
+  }
+
+  /* Scanlines */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,255,204,0.012) 3px, rgba(0,255,204,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 200;
+  }
+
+  /* Grid bg */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,204,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,204,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    z-index: 0;
+  }
+
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.07;
+    z-index: 0;
+    animation: orbDrift 18s ease-in-out infinite;
+  }
+  .orb-1 { width: 600px; height: 600px; background: var(--mint); top: -200px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: var(--neon-blue); bottom: -100px; left: -100px; animation-delay: -7s; }
+  @keyframes orbDrift {
+    0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-40px)}
+  }
+
+  /* ── LOGIN GATE ── */
+  #login-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--deep);
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+  }
+
+  #login-gate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,255,204,0.012) 3px, rgba(0,255,204,0.012) 4px
+    );
+  }
+
+  .gate-symbol {
+    font-family: 'VT323', monospace;
+    font-size: 80px;
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    animation: symbolPulse 2s ease-in-out infinite;
+    line-height: 1;
+  }
+  @keyframes symbolPulse {
+    0%,100%{ text-shadow: var(--glow-text); }
+    50%{ text-shadow: 0 0 20px #00ffcc, 0 0 50px #00ffcc88, 0 0 80px #00ffcc44; }
+  }
+
+  .gate-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(40px, 10vw, 72px);
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    letter-spacing: 6px;
+    text-align: center;
+  }
+
+  .gate-sub {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: rgba(0,229,255,0.5);
+    letter-spacing: 4px;
+    text-align: center;
+  }
+
+  .gate-input-wrap {
+    position: relative;
+    width: min(340px, 90vw);
+  }
+  .gate-input-wrap::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:10px; height:10px;
+    border-top:2px solid var(--mint); border-left:2px solid var(--mint);
+  }
+  .gate-input-wrap::after {
+    content:''; position:absolute; bottom:-1px; right:-1px;
+    width:10px; height:10px;
+    border-bottom:2px solid var(--mint); border-right:2px solid var(--mint);
+  }
+
+  #gate-input {
+    width: 100%;
+    background: rgba(0,255,204,0.04);
+    border: 1px solid rgba(0,255,204,0.25);
+    color: var(--mint);
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    letter-spacing: 10px;
+    padding: 16px 20px;
+    text-align: center;
+    outline: none;
+    caret-color: var(--mint);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  #gate-input:focus {
+    border-color: var(--mint);
+    box-shadow: var(--glow-mint);
+  }
+  #gate-input::placeholder { color: rgba(0,255,204,0.15); font-size: 20px; letter-spacing: 4px; }
+
+  .gate-btn {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 6px;
+    padding: 14px 48px;
+    background: transparent;
+    border: 2px solid var(--mint);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    box-shadow: var(--glow-mint);
+    cursor: pointer;
+    width: min(340px, 90vw);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .gate-btn::before {
+    content:''; position:absolute; inset:0;
+    background: var(--mint);
+    transform: translateX(-101%);
+    transition: transform 0.3s ease; z-index:0;
+  }
+  .gate-btn:hover { color: var(--deep); text-shadow: none; }
+  .gate-btn:hover::before { transform: translateX(0); }
+  .gate-btn span { position:relative; z-index:1; }
+
+  .gate-error {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #ff4466;
+    text-shadow: 0 0 10px #ff4466;
+    letter-spacing: 3px;
+    display: none;
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+  }
+
+  .gate-hint {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: rgba(0,255,204,0.18);
+    letter-spacing: 2px;
+  }
+
+  /* ── MAIN APP ── */
+  #app {
+    display: none;
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: rgba(6,26,28,0.95);
+    border-right: 1px solid rgba(0,255,204,0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    padding: 32px 0;
+  }
+
+  .sidebar-logo {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    letter-spacing: 4px;
+    padding: 0 28px 32px;
+    border-bottom: 1px solid rgba(0,255,204,0.08);
+  }
+  .sidebar-logo span { color: var(--neon-blue); text-shadow: var(--glow-blue); }
+
+  .sidebar-section {
+    padding: 24px 28px 8px;
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: rgba(0,255,204,0.25);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 28px;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: rgba(0,255,204,0.45);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .nav-item:hover { color: var(--mint); background: rgba(0,255,204,0.04); }
+  .nav-item.active {
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    border-left-color: var(--mint);
+    background: rgba(0,255,204,0.06);
+  }
+  .nav-icon { font-size: 20px; width: 20px; text-align: center; }
+
+  .progress-wrap {
+    margin: auto 28px 0;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0,255,204,0.08);
+  }
+  .progress-label {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgba(0,255,204,0.35);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar {
+    height: 3px;
+    background: rgba(0,255,204,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mint), var(--neon-blue));
+    box-shadow: var(--glow-mint);
+    width: 20%;
+    transition: width 0.8s ease;
+  }
+
+  .logout-wrap {
+    padding: 16px 28px 0;
+  }
+  .logout-link {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: rgba(0,255,204,0.2);
+    cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+  }
+  .logout-link:hover { color: rgba(255,68,100,0.7); }
+
+  /* Main content */
+  .main {
+    margin-left: 240px;
+    padding: 40px 48px 80px;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 48px;
+  }
+
+  .topbar-greeting {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: rgba(0,255,204,0.3);
+  }
+  .topbar-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(28px, 4vw, 44px);
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .topbar-badge {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    border: 1px solid rgba(0,229,255,0.25);
+    padding: 8px 20px;
+    background: rgba(0,229,255,0.04);
+    animation: badgePulse 4s ease-in-out infinite;
+  }
+  @keyframes badgePulse { 0%,90%,100%{opacity:1} 95%{opacity:0.4} }
+
+  /* Hero banner */
+  .hero-banner {
+    border: 1px solid rgba(0,255,204,0.15);
+    background: rgba(0,255,204,0.03);
+    padding: 36px 40px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .hero-banner::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:14px; height:14px;
+    border-top:2px solid var(--mint); border-left:2px solid var(--mint);
+    box-shadow: var(--glow-mint);
+  }
+  .hero-banner::after {
+    content:''; position:absolute; bottom:-1px; right:-1px;
+    width:14px; height:14px;
+    border-bottom:2px solid var(--mint); border-right:2px solid var(--mint);
+    box-shadow: var(--glow-mint);
+  }
+  .banner-bg-text {
+    position: absolute;
+    right: -10px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'VT323', monospace;
+    font-size: 120px;
+    color: rgba(0,255,204,0.04);
+    letter-spacing: -4px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .hero-banner-text {}
+  .banner-label {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: rgba(0,229,255,0.5);
+    margin-bottom: 8px;
+  }
+  .banner-headline {
+    font-family: 'VT323', monospace;
+    font-size: clamp(30px, 4vw, 48px);
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .banner-desc {
+    font-size: 11px;
+    color: rgba(0,255,204,0.45);
+    line-height: 1.8;
+    max-width: 380px;
+  }
+
+  .banner-cta {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 4px;
+    padding: 12px 32px;
+    background: transparent;
+    border: 1px solid var(--mint);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    box-shadow: var(--glow-mint);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .banner-cta::before {
+    content:''; position:absolute; inset:0;
+    background: var(--mint);
+    transform: translateX(-101%);
+    transition: transform 0.3s; z-index:0;
+  }
+  .banner-cta:hover { color: var(--deep); text-shadow: none; }
+  .banner-cta:hover::before { transform: translateX(0); }
+  .banner-cta span { position:relative; z-index:1; }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--mint);
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,255,204,0.2), transparent);
+  }
+
+  /* Module cards grid */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .module-card {
+    background: var(--card);
+    border: 1px solid rgba(0,255,204,0.1);
+    padding: 28px 24px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s;
+    overflow: hidden;
+    opacity: 0;
+    animation: cardIn 0.5s forwards;
+  }
+  .module-card:nth-child(1){animation-delay:0.05s}
+  .module-card:nth-child(2){animation-delay:0.12s}
+  .module-card:nth-child(3){animation-delay:0.19s}
+  .module-card:nth-child(4){animation-delay:0.26s}
+  .module-card:nth-child(5){animation-delay:0.33s}
+  @keyframes cardIn {
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .module-card:hover {
+    border-color: rgba(0,255,204,0.35);
+    background: rgba(6,30,32,0.9);
+    transform: translateY(-3px);
+  }
+
+  .module-card.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+    animation-delay: inherit;
+  }
+  .module-card.locked:hover { transform: none; border-color: rgba(0,255,204,0.1); }
+
+  .module-card.completed { border-color: rgba(0,255,204,0.25); }
+  .module-card.completed::after {
+    content: '✓';
+    position: absolute;
+    top: 16px; right: 16px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+  }
+
+  .module-card.active { border-color: rgba(0,255,204,0.5); }
+  .module-card.active::before {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width:3px;
+    background: linear-gradient(180deg, var(--mint), var(--neon-blue));
+    box-shadow: var(--glow-mint);
+  }
+
+  .card-num {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: rgba(0,229,255,0.4);
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    color: var(--mint);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+  .card-desc {
+    font-size: 11px;
+    color: rgba(0,255,204,0.4);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-duration {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: rgba(0,229,255,0.35);
+    letter-spacing: 2px;
+  }
+  .card-status {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border: 1px solid;
+  }
+  .status-start { color: var(--mint); border-color: rgba(0,255,204,0.3); text-shadow: var(--glow-mint); }
+  .status-continue { color: var(--neon-blue); border-color: rgba(0,229,255,0.3); }
+  .status-done { color: rgba(0,255,204,0.4); border-color: rgba(0,255,204,0.15); }
+  .status-locked { color: rgba(0,255,204,0.2); border-color: rgba(0,255,204,0.1); }
+
+  /* Lesson panel */
+  #lesson-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(3,15,16,0.97);
+    backdrop-filter: blur(10px);
+    padding: 0;
+    overflow-y: auto;
+    animation: panelIn 0.3s ease;
+  }
+  @keyframes panelIn {
+    from{opacity:0;transform:translateY(30px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 48px;
+    border-bottom: 1px solid rgba(0,255,204,0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(3,15,16,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+
+  .panel-back {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: rgba(0,255,204,0.4);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-back:hover { color: var(--mint); }
+
+  .panel-title {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--mint);
+    letter-spacing: 3px;
+    text-shadow: var(--glow-mint);
+  }
+
+  .panel-body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 48px 80px;
+  }
+
+  .video-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--card);
+    border: 1px solid rgba(0,255,204,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .video-placeholder::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:12px; height:12px;
+    border-top:2px solid var(--mint); border-left:2px solid var(--mint);
+  }
+  .video-placeholder::after {
+    content:''; position:absolute; bottom:-1px; right:-1px;
+    width:12px; height:12px;
+    border-bottom:2px solid var(--mint); border-right:2px solid var(--mint);
+  }
+
+  .play-btn {
+    width: 80px; height: 80px;
+    border: 2px solid var(--mint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--glow-mint);
+    font-size: 28px;
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .video-placeholder:hover .play-btn {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(0,255,204,0.5), 0 0 40px rgba(0,255,204,0.3);
+  }
+  .video-label {
+    position: absolute;
+    bottom: 16px;
+    left: 20px;
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: rgba(0,255,204,0.3);
+  }
+
+  .lesson-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(32px, 5vw, 52px);
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .lesson-meta-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .lesson-meta-item {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: rgba(0,229,255,0.4);
+  }
+
+  .lesson-body {
+    font-size: 12px;
+    color: rgba(0,255,204,0.5);
+    line-height: 2.2;
+    border-left: 2px solid rgba(0,255,204,0.1);
+    padding-left: 24px;
+    margin-bottom: 36px;
+  }
+
+  .lesson-prompts {
+    border: 1px solid rgba(0,255,204,0.12);
+    background: rgba(0,255,204,0.02);
+    padding: 28px;
+    position: relative;
+    margin-bottom: 36px;
+  }
+  .lesson-prompts::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:10px; height:10px;
+    border-top:2px solid var(--mint); border-left:2px solid var(--mint);
+  }
+
+  .prompts-label {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: rgba(0,229,255,0.4);
+    margin-bottom: 16px;
+  }
+  .prompt-item {
+    font-size: 12px;
+    color: rgba(0,255,204,0.55);
+    line-height: 2;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,255,204,0.06);
+    display: flex;
+    gap: 12px;
+  }
+  .prompt-item:last-child { border-bottom: none; }
+  .prompt-num {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--neon-blue);
+    flex-shrink: 0;
+  }
+
+  .complete-btn {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 5px;
+    padding: 18px 48px;
+    background: transparent;
+    border: 2px solid var(--mint);
+    color: var(--mint);
+    text-shadow: var(--glow-mint);
+    box-shadow: var(--glow-mint);
+    cursor: pointer;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .complete-btn::before {
+    content:''; position:absolute; inset:0;
+    background: var(--mint);
+    transform: translateX(-101%);
+    transition: transform 0.3s; z-index:0;
+  }
+  .complete-btn:hover { color: var(--deep); text-shadow: none; }
+  .complete-btn:hover::before { transform: translateX(0); }
+  .complete-btn span { position:relative; z-index:1; }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid rgba(0,255,204,0.1);
+    padding: 20px 24px;
+    text-align: center;
+    position: relative;
+    opacity: 0;
+    animation: cardIn 0.5s forwards;
+  }
+  .stat-card:nth-child(1){animation-delay:0.02s}
+  .stat-card:nth-child(2){animation-delay:0.08s}
+  .stat-card:nth-child(3){animation-delay:0.14s}
+  .stat-card::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:8px; height:8px;
+    border-top:1px solid var(--mint); border-left:1px solid var(--mint);
+  }
+  .stat-num {
+    font-family: 'VT323', monospace;
+    font-size: 48px;
+    color: var(--mint);
+    text-shadow: var(--glow-text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgba(0,255,204,0.3);
+  }
+
+  /* Mobile */
+  @media(max-width: 768px) {
+    .sidebar { width: 200px; }
+    .main { margin-left: 200px; padding: 24px 20px 60px; }
+    .stats-row { grid-template-columns: 1fr; }
+    .hero-banner { flex-direction: column; }
+    .panel-header { padding: 16px 20px; }
+    .panel-body { padding: 24px 20px 60px; }
+    .modules-grid { grid-template-columns: 1fr; }
+  }
+  @media(max-width: 540px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ── LOGIN GATE ── -->
+<div id="login-gate">
+  <div class="gate-symbol">◈</div>
+  <h1 class="gate-title">ACCESS REQUIRED</h1>
+  <p class="gate-sub">ENTER YOUR ACCESS CODE</p>
+  <div class="gate-input-wrap">
+    <input type="password" id="gate-input" placeholder="· · · · · · · ·"
+      onkeydown="if(event.key==='Enter') checkGate()" autocomplete="off" />
+  </div>
+  <button class="gate-btn" onclick="checkGate()"><span>ENTER THE PORTAL</span></button>
+  <p class="gate-error" id="gate-error">✗ &nbsp; INVALID CODE</p>
+  <p class="gate-hint">// code sent to your email after purchase //</p>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">META.<span>NOW</span></div>
+
+    <div class="sidebar-section">NAVIGATE</div>
+    <div class="nav-item active" onclick="showView('home')">
+      <span class="nav-icon">◈</span> DASHBOARD
+    </div>
+    <div class="nav-item" onclick="showView('modules')">
+      <span class="nav-icon">◻</span> MODULES
+    </div>
+    <div class="nav-item" onclick="showView('prompts')">
+      <span class="nav-icon">◎</span> DAILY PROMPTS
+    </div>
+    <div class="nav-item" onclick="showView('tools')">
+      <span class="nav-icon">◆</span> TOOLS
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>PROGRESS</span>
+        <span id="progress-pct">20%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="logout-wrap">
+      <button class="logout-link" onclick="logout()">◈ SIGN OUT</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="topbar-greeting">WELCOME BACK //</div>
+        <div class="topbar-title">YOUR JOURNEY</div>
+      </div>
+      <div class="topbar-badge">◈ SIGNAL ACTIVE</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-completed">1</div>
+        <div class="stat-label">COMPLETED</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">TOTAL MODULES</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">ACCESS</div>
+      </div>
+    </div>
+
+    <!-- Hero banner -->
+    <div class="hero-banner">
+      <div class="banner-bg-text">META</div>
+      <div class="hero-banner-text">
+        <div class="banner-label">// CONTINUE WHERE YOU LEFT OFF</div>
+        <div class="banner-headline">MODULE 02<br>THE COMFORT TRAP</div>
+        <div class="banner-desc">Why your brain resists growth — and the exact system to override it and call in wealth.</div>
+      </div>
+      <button class="banner-cta" onclick="openLesson(1)"><span>CONTINUE ▷</span></button>
+    </div>
+
+    <!-- Modules -->
+    <div class="section-header">
+      <div class="section-title">// ALL MODULES</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="modules-grid" id="modules-grid">
+      <!-- injected by JS -->
+    </div>
+
+  </main>
+</div>
+
+<!-- ── LESSON PANEL ── -->
+<div id="lesson-panel">
+  <div class="panel-header">
+    <button class="panel-back" onclick="closeLesson()">← BACK</button>
+    <div class="panel-title" id="panel-label">MODULE 01</div>
+    <div style="width:80px"></div>
+  </div>
+  <div class="panel-body">
+    <div class="video-placeholder" id="video-area">
+      <div class="play-btn">▷</div>
+      <div class="video-label">// PASTE YOUR VIDEO LINK HERE</div>
+    </div>
+    <h2 class="lesson-title" id="lesson-title">WHO ARE YOU REALLY?</h2>
+    <div class="lesson-meta-row">
+      <span class="lesson-meta-item">◈ MODULE 01</span>
+      <span class="lesson-meta-item">◎ ~25 MIN</span>
+      <span class="lesson-meta-item">◆ FOUNDATION</span>
+    </div>
+    <div class="lesson-body" id="lesson-body">
+      Strip away every label, role, and story you've been carrying. This module goes to the root — the identity beneath the identity. When you meet your true self, money stops being something you chase and starts being something you align with.
+    </div>
+    <div class="lesson-prompts">
+      <div class="prompts-label">// REFLECTION PROMPTS</div>
+      <div id="lesson-prompts-list"></div>
+    </div>
+    <button class="complete-btn" id="complete-btn" onclick="markComplete()">
+      <span>◈ &nbsp; MARK AS COMPLETE &nbsp; ◈</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const PASSWORD = "awaken2026"; // 🔑 CHANGE THIS
+
+  const modules = [
+    {
+      title: "WHO ARE YOU REALLY?",
+      desc: "Dissolve false identity. Meet the self that already has everything.",
+      duration: "25 MIN",
+      body: "Strip away every label, role, and story you've been carrying. This module goes to the root — the identity beneath the identity. When you meet your true self, money stops being something you chase and starts being something you align with.",
+      prompts: [
+        "Who would you be if no one was watching?",
+        "What identity are you holding onto that limits your income?",
+        "What does your higher self already know that you are pretending not to?"
+      ]
+    },
+    {
+      title: "THE COMFORT TRAP",
+      desc: "Why your brain resists wealth — and how to rewire it daily.",
+      duration: "30 MIN",
+      body: "Comfort is the enemy of expansion. This module reveals exactly how your nervous system is wired to keep you small — and gives you the daily override code. Business breakthroughs happen on the other side of this.",
+      prompts: [
+        "Where is comfort costing you money right now?",
+        "What would you do today if fear wasn't a factor?",
+        "Which version of you makes the most money — and what does that version do differently?"
+      ]
+    },
+    {
+      title: "DESIGN YOUR SIGNAL",
+      desc: "Build a life blueprint that attracts aligned success.",
+      duration: "28 MIN",
+      body: "Your outer reality is always a match for your inner signal. In this module you design the frequency you want to broadcast — and create a concrete business vision that your higher self can actually execute.",
+      prompts: [
+        "What does your $1M business feel like from the inside?",
+        "What are you currently broadcasting that is attracting the wrong results?",
+        "If your life was a transmission — what signal is it sending?"
+      ]
+    },
+    {
+      title: "EXECUTE WITHOUT FEAR",
+      desc: "Turn inner clarity into unstoppable outer momentum.",
+      duration: "32 MIN",
+      body: "Insight without action is just entertainment. This module gives you a daily action framework built specifically for entrepreneurs who are done waiting for the perfect moment — and ready to build from alignment, not anxiety.",
+      prompts: [
+        "What one action has your higher self been asking you to take?",
+        "What are you waiting for permission to do?",
+        "How does your most successful self handle fear differently?"
+      ]
+    },
+    {
+      title: "THE AWAKENED LIFE",
+      desc: "Integrate everything. Lock in your new identity forever.",
+      duration: "35 MIN",
+      body: "This final module is your integration ceremony. Every shift, every insight, every new habit — locked into your nervous system. You leave this module not as who you were, but as who you came here to be.",
+      prompts: [
+        "What is the biggest shift you've made through this journey?",
+        "What does your life look like in 12 months from this version of you?",
+        "What will you never go back to — and what are you fully stepping into?"
+      ]
+    }
+  ];
+
+  let completedModules = JSON.parse(sessionStorage.getItem('completed') || '[]');
+  let currentModule = 0;
+
+  // ── AUTH ──
+  function checkGate() {
+    const val = document.getElementById('gate-input').value;
+    const err = document.getElementById('gate-error');
+    if (val === PASSWORD) {
+      document.getElementById('login-gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      sessionStorage.setItem('unlocked', 'true');
+      renderModules();
+      updateProgress();
+    } else {
+      err.style.display = 'block';
+      err.style.animation = 'none';
+      setTimeout(() => err.style.animation = 'shake 0.4s ease', 10);
+      document.getElementById('gate-input').value = '';
+    }
+  }
+
+  function logout() {
+    sessionStorage.clear();
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-gate').style.display = 'flex';
+    document.getElementById('gate-input').value = '';
+  }
+
+  if (sessionStorage.getItem('unlocked') === 'true') {
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderModules();
+    updateProgress();
+  }
+
+  // ── MODULES ──
+  function renderModules() {
+    const grid = document.getElementById('modules-grid');
+    grid.innerHTML = modules.map((m, i) => {
+      const done = completedModules.includes(i);
+      const locked = i > 0 && !completedModules.includes(i - 1) && i !== 1;
+      const active = !done && !locked;
+      let statusClass = 'status-start', statusText = 'BEGIN';
+      if (done) { statusClass = 'status-done'; statusText = 'DONE ✓'; }
+      else if (i === 1 && !done) { statusClass = 'status-continue'; statusText = 'CONTINUE'; }
+      else if (locked) { statusClass = 'status-locked'; statusText = '🔒 LOCKED'; }
+
+      return `
+        <div class="module-card ${done?'completed':''} ${active&&i===1?'active':''} ${locked?'locked':''}"
+          onclick="${locked ? '' : `openLesson(${i})`}">
+          <div class="card-num">MODULE ${String(i+1).padStart(2,'0')} //</div>
+          <div class="card-title">${m.title}</div>
+          <div class="card-desc">${m.desc}</div>
+          <div class="card-meta">
+            <div class="card-duration">◎ ${m.duration}</div>
+            <div class="card-status ${statusClass}">${statusText}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function openLesson(idx) {
+    currentModule = idx;
+    const m = modules[idx];
+    document.getElementById('panel-label').textContent = `MODULE ${String(idx+1).padStart(2,'0')}`;
+    document.getElementById('lesson-title').textContent = m.title;
+    document.getElementById('lesson-body').textContent = m.body;
+    const prompts = document.getElementById('lesson-prompts-list');
+    prompts.innerHTML = m.prompts.map((p, i) =>
+      `<div class="prompt-item"><span class="prompt-num">0${i+1}//</span><span>${p}</span></div>`
+    ).join('');
+    const btn = document.getElementById('complete-btn');
+    if (completedModules.includes(idx)) {
+      btn.querySelector('span').textContent = '◈  COMPLETED  ◈';
+      btn.style.opacity = '0.5';
+    } else {
+      btn.querySelector('span').textContent = '◈   MARK AS COMPLETE   ◈';
+      btn.style.opacity = '1';
+    }
+    document.getElementById('lesson-panel').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLesson() {
+    document.getElementById('lesson-panel').style.display = 'none';
+    document.body.style.overflow = '';
+    renderModules();
+  }
+
+  function markComplete() {
+    if (!completedModules.includes(currentModule)) {
+      completedModules.push(currentModule);
+      sessionStorage.setItem('completed', JSON.stringify(completedModules));
+      document.getElementById('stat-completed').textContent = completedModules.length;
+      updateProgress();
+      const btn = document.getElementById('complete-btn');
+      btn.querySelector('span').textContent = '◈  COMPLETED  ◈';
+      btn.style.opacity = '0.5';
+    }
+    setTimeout(closeLesson, 600);
+  }
+
+  function updateProgress() {
+    const pct = Math.round((completedModules.length / modules.length) * 100);
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('stat-completed').textContent = completedModules.length;
+  }
+
+  function showView(view) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+</script>
+</body>
+</html>
